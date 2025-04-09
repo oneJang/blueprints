@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: operate-workflow-sa
+  namespace: user1
+---
+# Similarly you can use a ClusterRole and ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operate-workflow-role
+rules:
+  - apiGroups:
+      - argoproj.io
+    verbs:
+      - "*"
+    resources:
+      - workflows
+      - workflowtemplates
+      - cronworkflows
+      - clusterworkflowtemplates
+      - workflows/finalizers
+      - workfloweventbindings
+      - workfloweventbindings/finalizers
+      - workflowtemplates/finalizers
+      - cronworkflows/finalizers
+      - clusterworkflowtemplates
+      - clusterworkflowtemplates/finalizers
+      - workflowtasksets
+      - workflowtasksets/finalizers
+      - workflowtasksets/status
+      - workflowtaskresults
+      - workflowtaskresults/finalizers
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - serving.knative.dev
+    resources:
+      - revisions
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - namespaces
+      - secrets
+      - configmaps
+      - endpoints
+      - services
+      - events
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - patch
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - deployments/finalizers
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - patch
+      - watch
+  - apiGroups:
+      - serving.knative.dev
+      - autoscaling.internal.knative.dev
+      - networking.internal.knative.dev
+    resources:
+      - '*'
+      - '*/status'
+      - '*/finalizers'
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - deletecollection
+      - patch
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: operate-workflow-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: operate-workflow-role
+subjects:
+  - kind: ServiceAccount
+    name: operate-workflow-sa
+    namespace: user1
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: operate-workflow-sa.service-account-token
+  namespace: user1
+  annotations:
+    kubernetes.io/service-account.name: operate-workflow-sa
+type: kubernetes.io/service-account-token
+
